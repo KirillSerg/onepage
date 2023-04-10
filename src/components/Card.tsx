@@ -17,7 +17,7 @@ const Section = styled.div`
   align-items: center;
 `;
 
-const Photo = styled.div`
+const Photo = styled.img`
   width: 70px;
   height: 70px;
   border-radius: 50%;
@@ -40,9 +40,7 @@ const Card: React.FC<User> = ({userInfo}) => {
   return (
     <CardWrapper>
       <Section>
-        <Photo>
-          <img src={userInfo.photo || photoCover} alt="avatar"></img>
-        </Photo>
+        <Photo src={userInfo.photo || photoCover} alt="avatar" />
       </Section>
       <Section>
         <Typografy>{userInfo.name}</Typografy>

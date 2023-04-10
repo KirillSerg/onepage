@@ -29,10 +29,10 @@ export const Button = styled.button`
   padding: 4px 0;
   border-radius: 80px;
   line-height: 26px;
-  background-color: #F4E041;
+  background-color: ${props => props.disabled ? "#B4B4B4" : "#F4E041"};
   
   &&: hover {
-    background-color: #FFE302;
+    background-color: ${props => props.disabled ? "#B4B4B4" : "#FFE302"};
   }
 `;
 
