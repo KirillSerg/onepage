@@ -7,9 +7,12 @@ const Wrapper = styled.div`
   align-items: center;
   padding: 13px 16px;
   width: calc(100% - (16px * 2));
+  background-color: #FFFFFF;
 
   @media (min-width: 1170px) {
-    width: calc(1170px - (16px * 2));
+    padding-right: calc((100% - 1170px) / 2);
+    padding-left: calc((100% - 1170px) / 2);
+    width: 1170px;
   }
 `;
 
