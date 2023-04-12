@@ -22,7 +22,7 @@ const UsersWrapper = styled.div`
   gap:29px;
 `;
 
-const Title = styled.h1`
+export const Title = styled.h1`
   text-align: center;
   font-size: 40px;
   line-height: 40px;
@@ -49,11 +49,10 @@ const Users: React.FC<UsersProps> = ({ usersData, setGetRespons, users, setUsers
           setGetRespons(data)
           setUsers(users.concat(data.users))
         } else { console.log("Error") }
-        return
       })
     }
   }
-console.log(usersData)
+
   return (
     <Conteiner>
       <Title>Working with GET request</Title>

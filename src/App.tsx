@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { IGetResponse, IUsers } from './types';
+
 import Banner from './components/Banner';
 import Header from './components/Header';
 import Users from './components/Users';
-import { useEffect, useState } from 'react';
-import { IGetResponse, IUsers } from './types';
+import Form from './components/Form';
 
 const MainWrapper = styled.div`
   height: 100%;
@@ -27,7 +29,7 @@ const initialState: IGetResponse = {
     total_users: 0,
     count: 0,
     links: {
-      next_url: null,
+      next_url: 'https://frontend-test-assignment-api.abz.agency/api/v1/users?page=1&count=6',
       prev_url:null,
     },
     users: []
@@ -56,6 +58,7 @@ const App: React.FC = () => {
       <ContentWrapper>
         <Banner />
         <Users usersData={getResponse} setGetRespons={setGetRespons} users={users} setUsers={setUsers} />
+        <Form />
       </ContentWrapper>
     </MainWrapper>
   );

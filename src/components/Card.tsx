@@ -23,7 +23,7 @@ const Photo = styled.img`
   border-radius: 50%;
 `;
 
-const Typografy = styled.p`
+export const Typografy = styled.p`
   width: 100%;
   height: 26px;
   overflow: hidden;

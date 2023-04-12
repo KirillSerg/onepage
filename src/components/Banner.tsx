@@ -2,12 +2,6 @@ import styled from "styled-components";
 import bg from "../img/bg.jpg"
 import { Button } from "./Header";
 
-// const BannerWrapper = styled.div`
-//   width: 100%;
-//   display: flex;
-//   justify-content: center;
-// `;
-
 const BannerBox = styled.div`
   display: flex;
   flex-direction: column;
