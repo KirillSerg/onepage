@@ -6,6 +6,7 @@ import * as yup from "yup";
 import { Button } from "./Header";
 import { Title } from "./Users";
 import { Typografy } from "./Card";
+import { useEffect } from "react";
 
 const WrapperForm = styled.div`
   display: flex;
@@ -27,6 +28,10 @@ const CustomForm = styled.form`
     margin-bottom: 11px;
   }
 
+  && span {
+    color: red;
+  }
+
   @media (max-width: 360px) {
     width: 328px;
   }
@@ -38,10 +43,6 @@ const InputGroup = styled.div`
   flex-direction: column;
   gap: 50px;
   margin-bottom: 25px;
-
-  && span {
-    color: red;
-  }
 `;
 
 interface InputProps {
@@ -53,7 +54,7 @@ const Input = styled.input<InputProps>`
   padding: 14px 0 14px 16px;
   background-color: #F8F8F8;
   border: 1px solid;
-  border-color: ${props => props.isError ? "#ff0000" : "#D0CFCF"};
+  border-color: ${props => props.isError ? "red" : "#D0CFCF"};
   border-radius: 4px;
 `;
 
@@ -118,21 +119,46 @@ const schema = yup.object({
     .matches(regExEmail, "need valid email"),
   phone: yup.string().required().matches(/^(\+){0,1}380([0-9]{9})$/, "should start with code of Ukraine +380"),
   position_id: yup.number().required().min(1, "choose something"),
-  photo: yup.mixed().required(),
+  photo: yup
+    .mixed()
+    .required("choose file") // dose not working for error ((
+    .test("required", "required", (value) => {
+
+        return !!value[0 as keyof typeof value]
+    })
+    .test("fileSize", "max size 5mb", (value) => {
+      if (value[0 as keyof typeof value]) {
+        return value && value[0 as keyof typeof value]["size" as keyof typeof value] <= 5000000
+      } else return true
+    })
+    .test("type", "jpeg or jpg", (value) => {
+      if (value[0 as keyof typeof value]) {
+        return value && value[0 as keyof typeof value]["type" as keyof typeof value] === "image/jpeg" ||
+        value[0 as keyof typeof value]["type" as keyof typeof value] === "image/jpg"
+      } else return true
+    }),
 }).required();
 
 type FormData = yup.InferType<typeof schema>
 
 const Form = () => {
-  const {register, handleSubmit, reset, formState: { errors, isValid }} = useForm<FormData>({
+  const {register, handleSubmit, watch, reset, formState: { errors, isValid, isSubmitSuccessful }} = useForm<FormData>({
     mode: "onBlur",
     resolver: yupResolver(schema),
   });
+
+  const photoInfo = watch("photo", "Up")
+  // const photoName = photoInfo[0 as keyof typeof photoInfo]["name" as keyof typeof photoInfo]
+  // console.log(photoInfo[0 as keyof typeof photoInfo]["name" as keyof typeof photoInfo])
 
   const onSubmit = (data: FormData) => {
     console.log(data);
     // reset();   // somehow did not let to add file in form data - in the end the FIlelist is emptys
   };
+
+  // useEffect(() => {
+  //   reset()         // somehow did not let to add file in form data - in the end the FIlelist is emptys
+  // },[isSubmitSuccessful])
 
   return (
     <WrapperForm>
@@ -179,10 +205,16 @@ const Form = () => {
         </PositionRadioGroup>
         <div>
           <LabelUpload htmlFor="photo">Upload </LabelUpload>
-          <InputUpload disabled defaultValue={"Upload your photo"} />
+          <InputUpload
+            isError={!!errors?.photo?.message}
+            disabled defaultValue={
+              photoInfo[0 as keyof typeof photoInfo] &&
+              photoInfo[0 as keyof typeof photoInfo]["name" as keyof typeof photoInfo]
+            }
+          />
+          <span>{errors?.photo?.message || ""}</span>
           <input id="photo" style={{ opacity: "0" }} type="file" {...register("photo")} />
         </div>
-        <span>{errors?.photo?.message || ""}</span>
         
         <SubmitForm disabled={!isValid} type="submit" value="Sing up">Sing up</SubmitForm>
       </CustomForm>
