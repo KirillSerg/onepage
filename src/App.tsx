@@ -48,7 +48,6 @@ const App: React.FC = () => {
           setGetRespons(data)
           setUsers(users.concat(data.users))
         } else { console.log("Error") }
-        return
       })
   }, [])
 

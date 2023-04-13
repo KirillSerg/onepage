@@ -2,11 +2,11 @@ import styled from "styled-components";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-// import successImg from "../img/success-image.svg"
+import successImg from "../img/success-image.svg"
 import { Button } from "./Header";
 import { Title } from "./Users";
 import { Typografy } from "./Card";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const WrapperForm = styled.div`
   display: flex;
@@ -118,7 +118,7 @@ const schema = yup.object({
     .max(100, "max 100 symbol")
     .matches(regExEmail, "need valid email"),
   phone: yup.string().required().matches(/^(\+){0,1}380([0-9]{9})$/, "should start with code of Ukraine +380"),
-  position_id: yup.number().required().min(1, "choose something"),
+  position_id: yup.number().integer().required().min(1, "choose something"),
   photo: yup
     .mixed()
     .required("choose file") // dose not working for error ((
@@ -142,28 +142,54 @@ const schema = yup.object({
 type FormData = yup.InferType<typeof schema>
 
 const Form = () => {
+  // const [isPostRequestSuccesful, setIsPostRequestSuccesful] = useState<boolean>(false)
+
   const {register, handleSubmit, watch, reset, formState: { errors, isValid, isSubmitSuccessful }} = useForm<FormData>({
     mode: "onBlur",
     resolver: yupResolver(schema),
   });
 
   const photoInfo = watch("photo", "Up")
-  // const photoName = photoInfo[0 as keyof typeof photoInfo]["name" as keyof typeof photoInfo]
-  // console.log(photoInfo[0 as keyof typeof photoInfo]["name" as keyof typeof photoInfo])
 
-  const onSubmit = (data: FormData) => {
-    console.log(data);
-    // reset();   // somehow did not let to add file in form data - in the end the FIlelist is emptys
-  };
+  const onSubmit = async (data: FormData) => {
+    console.log(data)
+    const response = await fetch('https://frontend-test-assignment-api.abz.agency/api/v1/token')
+    const res = await response.json()
+
+    const formData = new FormData();
+    formData.append('position_id', data.position_id.toString())
+    formData.append('name', data.name)
+    formData.append('email', data.email)
+    formData.append('phone', data.phone)
+    formData.append('photo', data.photo[0 as keyof typeof data.photo], photoInfo[0 as keyof typeof photoInfo]["name" as keyof typeof photoInfo])
+    
+console.log(formData)
+    
+    const respostResponse = await fetch('https://frontend-test-assignment-api.abz.agency/api/v1/users', {
+      method: "POST",
+      body: formData,
+      headers: {
+        'Token': res.token,
+      },
+    });
+
+    if (respostResponse.status === 200) {
+      // setIsPostRequestSuccesful(true);
+    }
+  }
 
   // useEffect(() => {
-  //   reset()         // somehow did not let to add file in form data - in the end the FIlelist is emptys
-  // },[isSubmitSuccessful])
+  //   sendPostRequest()
+  // },[token])
 
   return (
     <WrapperForm>
-      <Title>Working with POST request</Title>
-      <CustomForm onSubmit={handleSubmit(onSubmit)}>
+      {/* <Title>"Working with POST request"</Title> */}
+      <Title>
+        {!isSubmitSuccessful ? "Working with POST request" : "User successfully registered"}
+      </Title>
+      {isSubmitSuccessful && <img src={successImg} />}
+      {!isSubmitSuccessful && <CustomForm onSubmit={handleSubmit(onSubmit)}>
         <InputGroup>
           <div>
             <Input isError={!!errors?.name?.message} placeholder="Your name" type="text" {...register("name")} />
@@ -218,6 +244,7 @@ const Form = () => {
         
         <SubmitForm disabled={!isValid} type="submit" value="Sing up">Sing up</SubmitForm>
       </CustomForm>
+      }
     </WrapperForm>
   );
 };
