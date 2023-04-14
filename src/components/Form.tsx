@@ -1,12 +1,16 @@
-import styled from "styled-components";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
-import successImg from "../img/success-image.svg"
 import { Button } from "./Header";
 import { Title } from "./Users";
 import { Typografy } from "./Card";
-import { useEffect, useState } from "react";
+import FormPosition from "./FormPosition";
+import successImg from "../img/success-image.svg"
+
+import { GetUsers, IUsers } from "../types";
+
+import styled from "styled-components";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 
 const WrapperForm = styled.div`
   display: flex;
@@ -64,30 +68,9 @@ const PhoneLabel = styled.label`
   color: #7E7E7E;
 `;
 
-const PositionRadioGroup = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  gap: 7px;
-  margin-bottom: 47px;
-
-  & input[type="radio"] {
-    margin-right: 12px;
-    width: 20px;
-    height: 20px;
-  }
-`;
-
-const SingleRadioGroup = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
 const SubmitForm = styled(Button)`
   margin-top: 34px;
 `;
-
 
 const InputUpload = styled(Input)`
   width: calc((100% - 16px - 30px) * 0.7816);
@@ -106,6 +89,7 @@ const LabelUpload = styled.label`
   border-bottom-left-radius: 4px;
 `;
 
+// eslint-disable-next-line
 const regExEmail = /^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/
 
 const schema = yup.object({
@@ -133,18 +117,25 @@ const schema = yup.object({
     })
     .test("type", "jpeg or jpg", (value) => {
       if (value[0 as keyof typeof value]) {
+        // eslint-disable-next-line
         return value && value[0 as keyof typeof value]["type" as keyof typeof value] === "image/jpeg" ||
         value[0 as keyof typeof value]["type" as keyof typeof value] === "image/jpg"
       } else return true
     }),
 }).required();
 
-type FormData = yup.InferType<typeof schema>
+export type FormData = yup.InferType<typeof schema>
 
-const Form = () => {
-  // const [isPostRequestSuccesful, setIsPostRequestSuccesful] = useState<boolean>(false)
+type FormProps = {
+  setGetRespons: React.Dispatch<React.SetStateAction<GetUsers>>;
+  setUsers: React.Dispatch<React.SetStateAction<IUsers[]>>;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
+}
 
-  const {register, handleSubmit, watch, reset, formState: { errors, isValid, isSubmitSuccessful }} = useForm<FormData>({
+const Form: React.FC<FormProps> = ({ setGetRespons, setUsers, setIsLoading }) => {
+  const [isPostRequestSuccesful, setIsPostRequestSuccesful] = useState<boolean>(false)
+
+  const {register, handleSubmit, watch, formState: { errors, isValid }} = useForm<FormData>({
     mode: "onBlur",
     resolver: yupResolver(schema),
   });
@@ -152,9 +143,8 @@ const Form = () => {
   const photoInfo = watch("photo", "Up")
 
   const onSubmit = async (data: FormData) => {
-    console.log(data)
-    const response = await fetch('https://frontend-test-assignment-api.abz.agency/api/v1/token')
-    const res = await response.json()
+    const responseToken = await fetch('https://frontend-test-assignment-api.abz.agency/api/v1/token')
+    const resultToken = await responseToken.json()
 
     const formData = new FormData();
     formData.append('position_id', data.position_id.toString())
@@ -163,33 +153,44 @@ const Form = () => {
     formData.append('phone', data.phone)
     formData.append('photo', data.photo[0 as keyof typeof data.photo], photoInfo[0 as keyof typeof photoInfo]["name" as keyof typeof photoInfo])
     
-console.log(formData)
-    
-    const respostResponse = await fetch('https://frontend-test-assignment-api.abz.agency/api/v1/users', {
+    const responseUserPost = await fetch('https://frontend-test-assignment-api.abz.agency/api/v1/users', {
       method: "POST",
       body: formData,
       headers: {
-        'Token': res.token,
+        'Token': resultToken.token,
       },
     });
 
-    if (respostResponse.status === 200) {
-      // setIsPostRequestSuccesful(true);
+    const resultUserPost = await responseUserPost.json()
+
+  console.log(resultUserPost)
+
+    if (responseUserPost.status === 200 || responseUserPost.status === 201) {
+      setIsPostRequestSuccesful(true)
+      setIsLoading(true)
+
+      fetch('https://frontend-test-assignment-api.abz.agency/api/v1/users?page=1&count=6')
+        .then((response) => response.json())
+        .then((data: GetUsers) => {
+          setIsLoading(false)
+
+          if (data.success) {
+            setGetRespons(data)
+            setUsers(data.users.sort((a, b) => b.registration_timestamp - a.registration_timestamp))
+          } else { console.log("Error") }
+        })
+    } else {
+      alert(resultUserPost.message)
     }
   }
 
-  // useEffect(() => {
-  //   sendPostRequest()
-  // },[token])
-
   return (
     <WrapperForm>
-      {/* <Title>"Working with POST request"</Title> */}
       <Title>
-        {!isSubmitSuccessful ? "Working with POST request" : "User successfully registered"}
+        {!isPostRequestSuccesful ? "Working with POST request" : "User successfully registered"}
       </Title>
-      {isSubmitSuccessful && <img src={successImg} />}
-      {!isSubmitSuccessful && <CustomForm onSubmit={handleSubmit(onSubmit)}>
+      {isPostRequestSuccesful && <img src={successImg} alt="success upload"/>}
+      {!isPostRequestSuccesful && <CustomForm onSubmit={handleSubmit(onSubmit)}>
         <InputGroup>
           <div>
             <Input isError={!!errors?.name?.message} placeholder="Your name" type="text" {...register("name")} />
@@ -208,27 +209,13 @@ console.log(formData)
             </div>
             <span>{errors?.phone?.message || ""}</span>
           </div>
-          
         </InputGroup>
 
         <Typografy>Select your position</Typografy>
-        <PositionRadioGroup>
-          <SingleRadioGroup>
-            <input type="radio" value="1" {...register("position_id")} />
-            <label>Frontend developer</label>
-          </SingleRadioGroup>
-          
-          <SingleRadioGroup>
-            <input type="radio" value="2" {...register("position_id")} />
-            <label>Backend developer</label>
-          </SingleRadioGroup>
-          
-          <SingleRadioGroup>
-            <input type="radio" value="3" {...register("position_id")} />
-            <label>Designer</label>
-          </SingleRadioGroup>
-          
-        </PositionRadioGroup>
+        
+        <FormPosition register={register}/>
+
+
         <div>
           <LabelUpload htmlFor="photo">Upload </LabelUpload>
           <InputUpload

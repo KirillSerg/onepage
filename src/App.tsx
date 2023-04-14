@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { IGetResponse, IUsers } from './types';
+import { GetUsers, IUsers } from './types';
 
 import Banner from './components/Banner';
 import Header from './components/Header';
@@ -22,7 +22,7 @@ const ContentWrapper = styled.div`
   gap: 140px;
 `;
 
-const initialState: IGetResponse = {
+const initialState: GetUsers = {
     success: true,
     page: 0,
     total_pages: 0,
@@ -36,17 +36,19 @@ const initialState: IGetResponse = {
   }
 
 const App: React.FC = () => {
-  const [getResponse, setGetRespons] = useState<IGetResponse>(initialState)
+  const [getResponse, setGetRespons] = useState<GetUsers>(initialState)
   const [users, setUsers] = useState<IUsers[]>([])
-  // const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
   useEffect(() => {
+    setIsLoading(true)
     fetch('https://frontend-test-assignment-api.abz.agency/api/v1/users?page=1&count=6')
       .then((response) => response.json())
-      .then((data: IGetResponse) => {
+      .then((data: GetUsers) => {
+        setIsLoading(false)
         if (data.success) {
           setGetRespons(data)
-          setUsers(users.concat(data.users))
+          setUsers(data.users.sort((a, b) => b.registration_timestamp - a.registration_timestamp))
         } else { console.log("Error") }
       })
   }, [])
@@ -56,8 +58,8 @@ const App: React.FC = () => {
       <Header />
       <ContentWrapper>
         <Banner />
-        <Users usersData={getResponse} setGetRespons={setGetRespons} users={users} setUsers={setUsers} />
-        <Form />
+        <Users usersData={getResponse} setGetRespons={setGetRespons} users={users} setUsers={setUsers} isLoading={isLoading} setIsLoading={setIsLoading} />
+        <Form setGetRespons={setGetRespons} setUsers={setUsers} setIsLoading={setIsLoading}/>
       </ContentWrapper>
     </MainWrapper>
   );

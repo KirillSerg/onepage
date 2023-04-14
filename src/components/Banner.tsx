@@ -46,7 +46,7 @@ const Text = styled.p`
   margin-bottom: 32px;
 `;
 
-const Banner = () => {
+const Banner: React.FC = () => {
   return (
     <BannerBox>
         <Title>Test assignment for front-end developer</Title>

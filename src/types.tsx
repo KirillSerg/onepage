@@ -9,7 +9,7 @@ export interface IUsers {
   photo: string;
 }
 
-export interface IGetResponse {
+export interface GetUsers {
   success: boolean,
   page: number,
   total_pages: number,

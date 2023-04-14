@@ -1,7 +1,9 @@
 import styled from "styled-components";
 import Card from "./Card";
-import { IGetResponse, IUsers } from "../types";
 import { Button } from "./Header";
+import { GetUsers, IUsers } from "../types";
+
+import loader from "../img/loader.png"
 
 const Conteiner = styled.div`
   display: flex;
@@ -33,23 +35,30 @@ export const Title = styled.h1`
   }
 `;
 type UsersProps = {
-  usersData: IGetResponse;
-  setGetRespons: React.Dispatch<React.SetStateAction<IGetResponse>>;
+  usersData: GetUsers;
+  setGetRespons: React.Dispatch<React.SetStateAction<GetUsers>>;
   users: IUsers[];
-  setUsers: React.Dispatch<React.SetStateAction<IUsers[]>>
+  setUsers: React.Dispatch<React.SetStateAction<IUsers[]>>;
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const Users: React.FC<UsersProps> = ({ usersData, setGetRespons, users, setUsers }) => {
+const Users: React.FC<UsersProps> = ({ usersData, setGetRespons, users, setUsers, isLoading, setIsLoading }) => {
+
   const handleShowMore = () => {
     if (usersData && usersData.links.next_url) {
-    fetch(usersData.links.next_url)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setGetRespons(data)
-          setUsers(users.concat(data.users))
-        } else { console.log("Error") }
-      })
+      setIsLoading(true)
+      
+      fetch(usersData.links.next_url)
+        .then((response) => response.json())
+        .then((data) => {
+          setIsLoading(false)
+
+          if (data.success) {
+            setGetRespons(data)
+            setUsers(users.concat(data.users).sort((a, b) => b.registration_timestamp - a.registration_timestamp))
+          } else { console.log("Error") }
+        })
     }
   }
 
@@ -60,6 +69,7 @@ const Users: React.FC<UsersProps> = ({ usersData, setGetRespons, users, setUsers
         {users.map(user => (
           <Card key={user.id} userInfo={user} />
         ))}
+        {isLoading && <img src={loader} alt="loader" />}
       </UsersWrapper>
       <Button disabled={!usersData.links.next_url ? true : false} onClick={handleShowMore} >Show more</Button>
     </Conteiner>
