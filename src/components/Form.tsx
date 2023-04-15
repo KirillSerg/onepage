@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "./Header";
 import { Title } from "./Users";
-import { Typografy } from "./Card";
 import FormPosition from "./FormPosition";
 import successImg from "../img/success-image.svg"
 
@@ -68,8 +67,8 @@ const PhoneLabel = styled.label`
   color: #7E7E7E;
 `;
 
-const SubmitForm = styled(Button)`
-  margin-top: 34px;
+const UploadInput = styled.div`
+  margin-bottom: 34px;
 `;
 
 const InputUpload = styled(Input)`
@@ -101,7 +100,7 @@ const schema = yup.object({
     .min(2, "min 2 symbol")
     .max(100, "max 100 symbol")
     .matches(regExEmail, "need valid email"),
-  phone: yup.string().required().matches(/^(\+){0,1}380([0-9]{9})$/, "should start with code of Ukraine +380"),
+  phone: yup.string().required().matches(/^(\+380)([0-9]{9})$/, "should start with code of Ukraine +380"),
   position_id: yup.number().integer().required().min(1, "choose something"),
   photo: yup
     .mixed()
@@ -140,7 +139,7 @@ const Form: React.FC<FormProps> = ({ setGetRespons, setUsers, setIsLoading }) =>
     resolver: yupResolver(schema),
   });
 
-  const photoInfo = watch("photo", "Up")
+  const photoInfo = watch("photo", "Upload photo")
 
   const onSubmit = async (data: FormData) => {
     const responseToken = await fetch('https://frontend-test-assignment-api.abz.agency/api/v1/token')
@@ -151,7 +150,10 @@ const Form: React.FC<FormProps> = ({ setGetRespons, setUsers, setIsLoading }) =>
     formData.append('name', data.name)
     formData.append('email', data.email)
     formData.append('phone', data.phone)
-    formData.append('photo', data.photo[0 as keyof typeof data.photo], photoInfo[0 as keyof typeof photoInfo]["name" as keyof typeof photoInfo])
+    formData.append(
+      'photo', data.photo[0 as keyof typeof data.photo],
+      photoInfo[0 as keyof typeof photoInfo]["name" as keyof typeof photoInfo]
+    )
     
     const responseUserPost = await fetch('https://frontend-test-assignment-api.abz.agency/api/v1/users', {
       method: "POST",
@@ -162,8 +164,6 @@ const Form: React.FC<FormProps> = ({ setGetRespons, setUsers, setIsLoading }) =>
     });
 
     const resultUserPost = await responseUserPost.json()
-
-  console.log(resultUserPost)
 
     if (responseUserPost.status === 200 || responseUserPost.status === 201) {
       setIsPostRequestSuccesful(true)
@@ -179,9 +179,7 @@ const Form: React.FC<FormProps> = ({ setGetRespons, setUsers, setIsLoading }) =>
             setUsers(data.users.sort((a, b) => b.registration_timestamp - a.registration_timestamp))
           } else { console.log("Error") }
         })
-    } else {
-      alert(resultUserPost.message)
-    }
+    } else {alert(`Error: ${resultUserPost.message}`)}
   }
 
   return (
@@ -190,47 +188,46 @@ const Form: React.FC<FormProps> = ({ setGetRespons, setUsers, setIsLoading }) =>
         {!isPostRequestSuccesful ? "Working with POST request" : "User successfully registered"}
       </Title>
       {isPostRequestSuccesful && <img src={successImg} alt="success upload"/>}
-      {!isPostRequestSuccesful && <CustomForm onSubmit={handleSubmit(onSubmit)}>
-        <InputGroup>
-          <div>
-            <Input isError={!!errors?.name?.message} placeholder="Your name" type="text" {...register("name")} />
-            <span>{errors?.name?.message || ""}</span>
-          </div>
-          
-          <div>
-            <Input isError={!!errors?.email?.message} placeholder="Email" type="email" {...register("email")} />
-            <span>{errors?.email?.message || ""}</span>
-          </div>
-          
-          <div>
-            <Input isError={!!errors?.phone?.message} placeholder="Phone" type="tel" {...register("phone")} />
+      {
+        !isPostRequestSuccesful &&
+        <CustomForm onSubmit={handleSubmit(onSubmit)}>
+          <InputGroup>
             <div>
-              <PhoneLabel >+38 (XXX) XXX - XX - XX</PhoneLabel>
+              <Input isError={!!errors?.name?.message} placeholder="Your name" type="text" {...register("name")} />
+              <span>{errors?.name?.message || ""}</span>
             </div>
-            <span>{errors?.phone?.message || ""}</span>
-          </div>
-        </InputGroup>
+            
+            <div>
+              <Input isError={!!errors?.email?.message} placeholder="Email" type="email" {...register("email")} />
+              <span>{errors?.email?.message || ""}</span>
+            </div>
+            
+            <div>
+              <Input isError={!!errors?.phone?.message} placeholder="Phone" type="tel" {...register("phone")} />
+              <div>
+                <PhoneLabel >+38 (XXX) XXX - XX - XX</PhoneLabel>
+              </div>
+              <span>{errors?.phone?.message || ""}</span>
+            </div>
+          </InputGroup>
+            
+          <FormPosition register={register}/>
 
-        <Typografy>Select your position</Typografy>
-        
-        <FormPosition register={register}/>
-
-
-        <div>
-          <LabelUpload htmlFor="photo">Upload </LabelUpload>
-          <InputUpload
-            isError={!!errors?.photo?.message}
-            disabled defaultValue={
-              photoInfo[0 as keyof typeof photoInfo] &&
-              photoInfo[0 as keyof typeof photoInfo]["name" as keyof typeof photoInfo]
-            }
-          />
-          <span>{errors?.photo?.message || ""}</span>
-          <input id="photo" style={{ opacity: "0" }} type="file" {...register("photo")} />
-        </div>
-        
-        <SubmitForm disabled={!isValid} type="submit" value="Sing up">Sing up</SubmitForm>
-      </CustomForm>
+          <UploadInput>
+            <LabelUpload htmlFor="photo">Upload </LabelUpload>
+            <InputUpload
+              isError={!!errors?.photo?.message}
+              disabled defaultValue={
+                photoInfo[0 as keyof typeof photoInfo] &&
+                photoInfo[0 as keyof typeof photoInfo]["name" as keyof typeof photoInfo]
+              }
+            />
+            <span>{errors?.photo?.message || ""}</span>
+            <input id="photo" style={{ opacity: "0" }} type="file" {...register("photo")} />
+          </UploadInput>
+          
+          <Button disabled={!isValid} type="submit" value="Sing up">Sing up</Button>
+        </CustomForm>
       }
     </WrapperForm>
   );

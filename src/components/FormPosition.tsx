@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import styled from "styled-components";
-import { FormData } from "./Form";
 import { UseFormRegister } from "react-hook-form";
+import styled from "styled-components";
+
+import { FormData } from "./Form";
+import { Typografy } from "./Card";
 
 const PositionRadioGroup = styled.div`
   width: 100%;
@@ -53,14 +55,17 @@ const FormPosition = ({ register }: FormPositionProps) => {
   console.log(positions)
 
   return (
-    <PositionRadioGroup>
-      {positions.map(position => (
-        <SingleRadioGroup key={position.id}>
-          <input type="radio" value={position.id} {...register("position_id")} />
-          <label>{position.name}</label>
-      </SingleRadioGroup>
-      ))}
-    </PositionRadioGroup>
+    <>
+      <Typografy>Select your position</Typografy>
+      <PositionRadioGroup>
+        {positions.map(position => (
+          <SingleRadioGroup key={position.id}>
+            <input type="radio" value={position.id} {...register("position_id")} />
+            <label>{position.name}</label>
+        </SingleRadioGroup>
+        ))}
+      </PositionRadioGroup>
+    </>
   );
 };
 
