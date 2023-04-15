@@ -52,8 +52,6 @@ const FormPosition = ({ register }: FormPositionProps) => {
       })
   }, [])
 
-  console.log(positions)
-
   return (
     <>
       <Typografy>Select your position</Typografy>
