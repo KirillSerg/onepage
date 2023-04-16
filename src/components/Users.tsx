@@ -69,8 +69,8 @@ const Users: React.FC<UsersProps> = ({ usersData, setGetRespons, users, setUsers
         {users.map(user => (
           <Card key={user.id} userInfo={user} />
         ))}
-        {isLoading && <img src={loader} alt="loader" />}
       </UsersWrapper>
+        {isLoading && <img src={loader} alt="loader" />}
       <Button disabled={!usersData.links.next_url ? true : false} onClick={handleShowMore} >Show more</Button>
     </Conteiner>
   );
